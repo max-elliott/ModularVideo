@@ -17,6 +17,8 @@ class Node:
         self.module_name = module_name
         self.module = module_object
 
+        self.mixer = Mixer()
+
     def is_output_node(self):
         return False
 
@@ -77,11 +79,12 @@ class Node:
     def get_inputs(self):
         if self.module.accepts_video:
             in_nodes = self.input_nodes[dataname_to_index('video')]
-            for i, node in enumerate(in_nodes):
-                if i == 0:
-                    self.module.video_input_buffer = node.module.video_output_buffer // len(in_nodes)
-                else:
-                    self.module.video_input_buffer = (node.module.video_output_buffer // len(in_nodes))
+            self.module.video_input_buffer = self.mixer.mix_video(in_nodes)
+            # for i, node in enumerate(in_nodes):
+            #     if i == 0:
+            #         self.module.video_input_buffer = node.module.video_output_buffer // len(in_nodes)
+            #     else:
+            #         self.module.video_input_buffer = (node.module.video_output_buffer // len(in_nodes))
 
         if self.module.accepts_audio:
             in_nodes = self.input_nodes[dataname_to_index('audio')]
@@ -114,6 +117,16 @@ class Mixer:
     def set_mix_ratios(self, m):
         self.mix_ratios = m
 
-    def mix(self, input_nodes):
-        pass
+    def mix_video(self, input_nodes):
+        # ;;; When I change buffers to be an object, make them contain video/audio metadata so it can be checked here
+        if len(input_nodes) > 0:
+            tmp_buffer = np.zeros_like(input_nodes[0].module.video_output_buffer, dtype=np.uint16)
+            for node in input_nodes:
+                tmp_buffer += node.module.video_output_buffer
 
+            tmp_buffer //= len(input_nodes)
+            return tmp_buffer.astype(np.uint8)  # change output type when metadata is availible
+        else:
+            return -1
+
+        # Do for audio and modulation late

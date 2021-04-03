@@ -6,8 +6,19 @@ class Module:
         self.accepts_video, self.accepts_audio, self.accepts_modulation = inputs
         self.emits_video, self.emits_audio, self.emits_modulation = outputs
 
+        self.enabled = True
+
     def is_generator(self):
         return False
+
+    def toggle_enable(self):
+        self.enabled = not self.enabled
+
+    def enable(self):
+        self.enabled = True
+
+    def disable(self):
+        self.enabled = False
 
     def tick(self):
         raise NotImplementedError()

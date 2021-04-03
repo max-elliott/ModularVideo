@@ -1,6 +1,7 @@
 from ModularSystem.node import *
 from Modules.util_modules import IdentityModule
 
+
 class ModuleNet:
     def __init__(self):
         self.nodes = {}
@@ -56,9 +57,9 @@ class ModuleNet:
 
         return 0
 
-    def add_connection(self, node_name1, node_name2, connection_type):
-        self.nodes[node_name1].add_output_node(self.nodes[node_name2], connection_type)
-        self.nodes[node_name2].add_input_node(self.nodes[node_name1], connection_type)
+    def add_connection(self, input_node_name, output_node_name, connection_type):
+        self.nodes[input_node_name].add_output_node(self.nodes[output_node_name], connection_type)
+        self.nodes[output_node_name].add_input_node(self.nodes[input_node_name], connection_type)
 
     def get_output(self):
         return self.nodes['OUT'].module.video_output_buffer

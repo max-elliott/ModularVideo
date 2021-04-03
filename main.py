@@ -25,19 +25,29 @@ def main():
     looper.set_offset(start_offset)
     looper.set_loop_length(500)
     looper.set_frame_interval(5)
+
+    looper1 = Looper(meta)
+    looper1.set_video(reader)
+    looper1.set_offset(start_offset-1000)
+    looper1.set_loop_length(500)
+    looper1.set_frame_interval(5)
+
     reducer = BitReducer(meta)
     sharpen = Sharpener(meta)
     delay = VideoDelay(meta)
 
     net = ModuleNet()
     net.add_module(looper)
-    # net.add_module(sharpen, input_names=(['Looper0'], [], []))
-    # net.add_module(reducer, input_names=(['Looper0'], [], []), output_names=([], [], []))
-    net.add_module(delay, input_names=(['Looper0'], [], []), output_names=(['OUT'], [], []))
+    # net.add_module(looper1)
+    net.add_module(sharpen, input_names=(['Looper0'], [], []))
+    net.add_module(reducer, input_names=(['Sharpener0'], [], []), output_names=(['OUT'], [], []))
+    # net.add_module(reducer, input_names=(['Looper0'], [], []), output_names=(['OUT'], [], []))
+    # net.add_module(delay, input_names=(['Looper0'], [], []), output_names=(['OUT'], [], []))
+    # net.add_connection('Looper1', 'VideoDelay0', 'video')
 
-    # net.nodes['BitReducer0'].module.set_num_bits(2)
+    net.nodes['BitReducer0'].module.set_num_bits(4)
     # net.nodes['Sharpener0'].module.set_strength(7)
-
+    # net.nodes['VideoDelay0'].module.disable()
     sharpen_max_strength = 20
     sharpen_min_strength = 10
     sharpen_delta = (sharpen_max_strength - sharpen_min_strength) / 2
@@ -51,14 +61,16 @@ def main():
     start_time = timer()
 
     for i in range(total_frames):
-        # net.nodes['Sharpener0'].module.set_strength(sharpen_min_strength + sharpen_delta + sharpen_delta * np.sin(angular_period * i))
+        net.nodes['Sharpener0'].module.set_strength(sharpen_min_strength + sharpen_delta + sharpen_delta * np.sin(angular_period * i))
         #
         # net.nodes['Looper0'].tick()
         # net.nodes['Sharpener0'].tick()
         # net.nodes['BitReducer0'].tick()
         # instrument.reset_flags()
         # print(net.nodes['Looper0'].module.current_frame)
-
+        # if i == 100:
+        #     net.nodes['VideoDelay0'].module.disable()
+        # print(i)
         video_frame = instrument.tick()
         # frame = net.nodes['BitReducer0'].module.video_output_buffer
         writer.send(video_frame)

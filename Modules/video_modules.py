@@ -89,8 +89,8 @@ class VideoDelay(ModulatedVideoModule):
     def __init__(self, video_metadata):
         super(VideoDelay, self).__init__(video_metadata)
 
-        self.max_length = 30  # in num frames
-        self.feedback = 0.8
+        self.max_length = 15  # in num frames
+        self.feedback = 90
         self.current_frame = 0
 
         self.delay_buffer = np.zeros((self.max_length, self.height, self.width, self.num_channels), dtype=np.uint32)
@@ -104,15 +104,14 @@ class VideoDelay(ModulatedVideoModule):
 
     def tick(self):
         tmp_input = self.video_input_buffer.astype('uint32') + self.delay_buffer[self.current_frame, :, :, :] # 65535 255
-        self.delay_buffer[self.current_frame, :, :, :] = tmp_input * self.feedback
+        if self.enabled:
+            self.delay_buffer[self.current_frame, :, :, :] = tmp_input * self.feedback / 100
+        else:
+            self.delay_buffer[self.current_frame, :, :, :] = self.delay_buffer[self.current_frame, :, :, :] * self.feedback / 100
 
         tmp_input = (tmp_input * 255) // np.max(tmp_input)
         self.video_output_buffer = tmp_input.astype(self.pix_fmt)
         self.current_frame = (self.current_frame + 1) % self.max_length
 
-        # self.video_output_buffer = self.video_input_buffer + self.delay_buffer[self.current_frame, :, :, :]
-        # self.video_output_buffer = self.video_output_buffer * np.max(self.video_output_buffer)
-        # self.delay_buffer[self.current_frame, :, :, :] = self.video_output_buffer * self.feedback
-        # self.current_frame = (self.current_frame + 1) % self.delay_length
         pass
 
